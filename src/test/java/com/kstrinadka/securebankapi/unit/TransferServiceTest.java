@@ -61,11 +61,10 @@ class TransferServiceTest extends AbstractUnitTest {
         UserEntity toUser = user(1L);
         AccountEntity fromAccount = account(20L, fromUser, "1000.00");
         AccountEntity toAccount = account(10L, toUser, "500.00");
-        when(userRepository.findById(2L)).thenReturn(Optional.of(fromUser));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(toUser));
+        when(userRepository.existsById(2L)).thenReturn(true);
+        when(userRepository.existsById(1L)).thenReturn(true);
         when(accountRepository.findByUserIdForUpdate(1L)).thenReturn(Optional.of(toAccount));
         when(accountRepository.findByUserIdForUpdate(2L)).thenReturn(Optional.of(fromAccount));
-        when(accountRepository.save(any(AccountEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(transferRepository.save(any(TransferEntity.class))).thenAnswer(invocation -> {
             TransferEntity transfer = invocation.getArgument(0);
             transfer.setId(100L);
@@ -86,9 +85,8 @@ class TransferServiceTest extends AbstractUnitTest {
         InOrder inOrder = inOrder(accountRepository, transferRepository);
         inOrder.verify(accountRepository).findByUserIdForUpdate(1L);
         inOrder.verify(accountRepository).findByUserIdForUpdate(2L);
-        inOrder.verify(accountRepository).save(fromAccount);
-        inOrder.verify(accountRepository).save(toAccount);
         inOrder.verify(transferRepository).save(any(TransferEntity.class));
+        verify(accountRepository, never()).save(any(AccountEntity.class));
     }
 
     @Test
@@ -97,8 +95,8 @@ class TransferServiceTest extends AbstractUnitTest {
         UserEntity toUser = user(2L);
         AccountEntity fromAccount = account(10L, fromUser, "100.00");
         AccountEntity toAccount = account(20L, toUser, "500.00");
-        when(userRepository.findById(1L)).thenReturn(Optional.of(fromUser));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(toUser));
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.existsById(2L)).thenReturn(true);
         when(accountRepository.findByUserIdForUpdate(1L)).thenReturn(Optional.of(fromAccount));
         when(accountRepository.findByUserIdForUpdate(2L)).thenReturn(Optional.of(toAccount));
 
@@ -150,7 +148,7 @@ class TransferServiceTest extends AbstractUnitTest {
 
     @Test
     void senderNotFoundFails() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.existsById(1L)).thenReturn(false);
 
         assertNotFound(
                 () -> transferService.transfer(1L, 2L, new BigDecimal("10.00")),
@@ -162,8 +160,8 @@ class TransferServiceTest extends AbstractUnitTest {
 
     @Test
     void receiverNotFoundFails() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user(1L)));
-        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.existsById(2L)).thenReturn(false);
 
         assertNotFound(
                 () -> transferService.transfer(1L, 2L, new BigDecimal("10.00")),
@@ -175,8 +173,8 @@ class TransferServiceTest extends AbstractUnitTest {
 
     @Test
     void senderAccountNotFoundFails() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user(1L)));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user(2L)));
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.existsById(2L)).thenReturn(true);
         when(accountRepository.findByUserIdForUpdate(1L)).thenReturn(Optional.empty());
 
         assertNotFound(
@@ -190,8 +188,8 @@ class TransferServiceTest extends AbstractUnitTest {
     @Test
     void receiverAccountNotFoundFails() {
         UserEntity fromUser = user(1L);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(fromUser));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user(2L)));
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(userRepository.existsById(2L)).thenReturn(true);
         when(accountRepository.findByUserIdForUpdate(1L)).thenReturn(Optional.of(account(10L, fromUser, "100.00")));
         when(accountRepository.findByUserIdForUpdate(2L)).thenReturn(Optional.empty());
 
