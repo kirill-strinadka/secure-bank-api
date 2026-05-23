@@ -4,7 +4,6 @@ import com.kstrinadka.securebankapi.dto.response.TransferResponse;
 import com.kstrinadka.securebankapi.entity.AccountEntity;
 import com.kstrinadka.securebankapi.entity.TransferEntity;
 import com.kstrinadka.securebankapi.entity.TransferStatus;
-import com.kstrinadka.securebankapi.entity.UserEntity;
 import com.kstrinadka.securebankapi.exception.BadRequestException;
 import com.kstrinadka.securebankapi.exception.InsufficientFundsException;
 import com.kstrinadka.securebankapi.exception.NotFoundException;
@@ -34,8 +33,8 @@ public class TransferServiceImpl implements TransferService {
     public TransferResponse transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
         validateRequest(fromUserId, toUserId, amount);
 
-        UserEntity fromUser = findUser(fromUserId, "SENDER_NOT_FOUND");
-        UserEntity toUser = findUser(toUserId, "RECEIVER_NOT_FOUND");
+        ensureUserExists(fromUserId, "SENDER_NOT_FOUND");
+        ensureUserExists(toUserId, "RECEIVER_NOT_FOUND");
 
         LockedAccounts lockedAccounts = lockAccounts(fromUserId, toUserId);
         AccountEntity fromAccount = lockedAccounts.accountForUser(fromUserId);
@@ -48,12 +47,9 @@ public class TransferServiceImpl implements TransferService {
         fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
         toAccount.setBalance(toAccount.getBalance().add(amount));
 
-        accountRepository.save(fromAccount);
-        accountRepository.save(toAccount);
-
         TransferEntity transfer = new TransferEntity();
-        transfer.setFromUser(fromUser);
-        transfer.setToUser(toUser);
+        transfer.setFromUser(fromAccount.getUser());
+        transfer.setToUser(toAccount.getUser());
         transfer.setAmount(amount);
         transfer.setStatus(TransferStatus.SUCCESS);
 
@@ -81,10 +77,11 @@ public class TransferServiceImpl implements TransferService {
         }
     }
 
-    private UserEntity findUser(Long userId, String code) {
+    private void ensureUserExists(Long userId, String code) {
         String message = "SENDER_NOT_FOUND".equals(code) ? "Sender not found" : "Receiver not found";
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(code, message));
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException(code, message);
+        }
     }
 
     private LockedAccounts lockAccounts(Long fromUserId, Long toUserId) {
