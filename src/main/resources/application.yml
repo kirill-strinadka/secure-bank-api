@@ -1,14 +1,28 @@
 spring:
+  application:
+    name: secure-bank-api
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/secure_bank
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:55432/banking}
+    username: ${SPRING_DATASOURCE_USERNAME:banking}
+    password: ${SPRING_DATASOURCE_PASSWORD:banking}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
 
   flyway:
     enabled: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: "very-long-secret-for-local-development"
+    expiration: 3600000

@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: secure-bank-postgres
+    environment:
+      POSTGRES_DB: banking
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking
+    ports:
+      - "55432:5432"
+    volumes:
+      - secure-bank-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  secure-bank-postgres-data:
