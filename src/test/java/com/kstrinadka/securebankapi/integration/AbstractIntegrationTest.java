@@ -26,5 +26,6 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.datasource.driver-class-name", POSTGRES::getDriverClassName);
+        registry.add("app.balance-growth.scheduler.enabled", () -> false);
     }
 }

@@ -22,6 +22,7 @@ erDiagram
         numeric initial_balance
         timestamp created_at
         timestamp updated_at
+        timestamp last_balance_growth_at
         bigint version
     }
 
@@ -62,7 +63,7 @@ erDiagram
 | Table | Purpose |
 | --- | --- |
 | `users` | Bank users with personal data and password hash. |
-| `account` | One account per user with balance, initial balance, and optimistic lock version. |
+| `account` | One account per user with balance, initial balance, balance-growth cursor, and optimistic lock version. |
 | `email_data` | User email addresses. |
 | `phone_data` | User phone numbers. |
 | `transfer` | Money transfer history between users. |

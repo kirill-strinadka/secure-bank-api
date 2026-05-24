@@ -26,3 +26,7 @@ app:
   jwt:
     secret: "very-long-secret-for-local-development"
     expiration: 3600000
+  balance-growth:
+    scheduler:
+      enabled: true
+      fixed-rate: 30000

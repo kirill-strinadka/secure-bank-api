@@ -46,6 +46,9 @@ public class AccountEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "last_balance_growth_at", nullable = false)
+    private LocalDateTime lastBalanceGrowthAt;
+
     @Version
     @Column(nullable = false)
     private Long version;
@@ -55,6 +58,7 @@ public class AccountEntity {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
+        lastBalanceGrowthAt = now;
     }
 
     @PreUpdate
