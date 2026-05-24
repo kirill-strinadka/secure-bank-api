@@ -4,6 +4,7 @@ import com.kstrinadka.securebankapi.dto.request.PhoneCreateRequest;
 import com.kstrinadka.securebankapi.dto.request.PhoneUpdateRequest;
 import com.kstrinadka.securebankapi.dto.response.PhoneResponse;
 import com.kstrinadka.securebankapi.service.PhoneService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users/me/phones")
 @RequiredArgsConstructor
+@Tag(name = "Phones", description = "Current user phone management")
 public class PhoneController {
 
     private final PhoneService phoneService;

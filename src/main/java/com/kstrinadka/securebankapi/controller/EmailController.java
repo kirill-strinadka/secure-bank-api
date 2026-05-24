@@ -4,6 +4,7 @@ import com.kstrinadka.securebankapi.dto.request.EmailCreateRequest;
 import com.kstrinadka.securebankapi.dto.request.EmailUpdateRequest;
 import com.kstrinadka.securebankapi.dto.response.EmailResponse;
 import com.kstrinadka.securebankapi.service.EmailService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users/me/emails")
 @RequiredArgsConstructor
+@Tag(name = "Emails", description = "Current user email management")
 public class EmailController {
 
     private final EmailService emailService;

@@ -3,6 +3,7 @@ package com.kstrinadka.securebankapi.controller;
 import com.kstrinadka.securebankapi.dto.response.PageResponse;
 import com.kstrinadka.securebankapi.dto.response.UserResponse;
 import com.kstrinadka.securebankapi.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Tag(name = "Users", description = "User search with filters and pagination")
 public class UserController {
 
     private final UserService userService;
