@@ -1,5 +1,6 @@
 package com.kstrinadka.securebankapi.service.impl;
 
+import com.kstrinadka.securebankapi.config.CacheNames;
 import com.kstrinadka.securebankapi.dto.request.EmailCreateRequest;
 import com.kstrinadka.securebankapi.dto.request.EmailUpdateRequest;
 import com.kstrinadka.securebankapi.dto.response.EmailResponse;
@@ -11,8 +12,10 @@ import com.kstrinadka.securebankapi.mapper.EmailMapper;
 import com.kstrinadka.securebankapi.repository.EmailDataRepository;
 import com.kstrinadka.securebankapi.repository.UserRepository;
 import com.kstrinadka.securebankapi.security.CurrentUserProvider;
+import com.kstrinadka.securebankapi.service.CacheInvalidationService;
 import com.kstrinadka.securebankapi.service.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +30,11 @@ public class EmailServiceImpl implements EmailService {
     private final UserRepository userRepository;
     private final EmailDataRepository emailDataRepository;
     private final EmailMapper emailMapper;
+    private final CacheInvalidationService cacheInvalidationService;
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.CURRENT_USER_EMAILS, key = "@currentUserProvider.getCurrentUserId()")
     public List<EmailResponse> getCurrentUserEmails() {
         Long currentUserId = currentUserProvider.getCurrentUserId();
         ensureUserExists(currentUserId);
@@ -55,7 +60,9 @@ public class EmailServiceImpl implements EmailService {
         emailData.setUser(user);
         emailData.setEmail(email);
 
-        return emailMapper.toResponse(emailDataRepository.save(emailData));
+        EmailResponse response = emailMapper.toResponse(emailDataRepository.save(emailData));
+        cacheInvalidationService.evictEmailCaches(currentUserId);
+        return response;
     }
 
     @Override
@@ -72,7 +79,9 @@ public class EmailServiceImpl implements EmailService {
                 });
 
         emailData.setEmail(newEmail);
-        return emailMapper.toResponse(emailDataRepository.save(emailData));
+        EmailResponse response = emailMapper.toResponse(emailDataRepository.save(emailData));
+        cacheInvalidationService.evictEmailCaches(currentUserId);
+        return response;
     }
 
     @Override
@@ -86,6 +95,7 @@ public class EmailServiceImpl implements EmailService {
         }
 
         emailDataRepository.delete(emailData);
+        cacheInvalidationService.evictEmailCaches(currentUserId);
     }
 
     private UserEntity findCurrentUser(Long currentUserId) {

@@ -1,6 +1,8 @@
 package com.kstrinadka.securebankapi.repository;
 
+import com.kstrinadka.securebankapi.config.CacheNames;
 import com.kstrinadka.securebankapi.entity.PhoneDataEntity;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -12,6 +14,7 @@ public interface PhoneDataRepository extends JpaRepository<PhoneDataEntity, Long
 
     Optional<PhoneDataEntity> findByPhone(String phone);
 
+    @Cacheable(cacheNames = CacheNames.PHONE_EXISTS, key = "#p0")
     boolean existsByPhone(String phone);
 
     long countByUserId(Long userId);

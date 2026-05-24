@@ -1,5 +1,6 @@
 package com.kstrinadka.securebankapi.service.impl;
 
+import com.kstrinadka.securebankapi.config.CacheNames;
 import com.kstrinadka.securebankapi.dto.response.PageResponse;
 import com.kstrinadka.securebankapi.dto.response.UserResponse;
 import com.kstrinadka.securebankapi.entity.UserEntity;
@@ -8,6 +9,7 @@ import com.kstrinadka.securebankapi.repository.UserRepository;
 import com.kstrinadka.securebankapi.repository.UserSpecification;
 import com.kstrinadka.securebankapi.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -27,6 +29,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.USER_SEARCH, key = "{#p0, #p1, #p2, #p3, #p4, #p5}")
     public PageResponse<UserResponse> searchUsers(
             LocalDate dateOfBirth,
             String phone,

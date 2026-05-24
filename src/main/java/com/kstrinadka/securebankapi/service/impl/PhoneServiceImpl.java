@@ -1,5 +1,6 @@
 package com.kstrinadka.securebankapi.service.impl;
 
+import com.kstrinadka.securebankapi.config.CacheNames;
 import com.kstrinadka.securebankapi.dto.request.PhoneCreateRequest;
 import com.kstrinadka.securebankapi.dto.request.PhoneUpdateRequest;
 import com.kstrinadka.securebankapi.dto.response.PhoneResponse;
@@ -11,8 +12,10 @@ import com.kstrinadka.securebankapi.mapper.PhoneMapper;
 import com.kstrinadka.securebankapi.repository.PhoneDataRepository;
 import com.kstrinadka.securebankapi.repository.UserRepository;
 import com.kstrinadka.securebankapi.security.CurrentUserProvider;
+import com.kstrinadka.securebankapi.service.CacheInvalidationService;
 import com.kstrinadka.securebankapi.service.PhoneService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +30,11 @@ public class PhoneServiceImpl implements PhoneService {
     private final UserRepository userRepository;
     private final PhoneDataRepository phoneDataRepository;
     private final PhoneMapper phoneMapper;
+    private final CacheInvalidationService cacheInvalidationService;
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = CacheNames.CURRENT_USER_PHONES, key = "@currentUserProvider.getCurrentUserId()")
     public List<PhoneResponse> getCurrentUserPhones() {
         Long currentUserId = currentUserProvider.getCurrentUserId();
         ensureUserExists(currentUserId);
@@ -55,7 +60,9 @@ public class PhoneServiceImpl implements PhoneService {
         phoneData.setUser(user);
         phoneData.setPhone(phone);
 
-        return phoneMapper.toResponse(phoneDataRepository.save(phoneData));
+        PhoneResponse response = phoneMapper.toResponse(phoneDataRepository.save(phoneData));
+        cacheInvalidationService.evictPhoneCaches(currentUserId);
+        return response;
     }
 
     @Override
@@ -72,7 +79,9 @@ public class PhoneServiceImpl implements PhoneService {
                 });
 
         phoneData.setPhone(newPhone);
-        return phoneMapper.toResponse(phoneDataRepository.save(phoneData));
+        PhoneResponse response = phoneMapper.toResponse(phoneDataRepository.save(phoneData));
+        cacheInvalidationService.evictPhoneCaches(currentUserId);
+        return response;
     }
 
     @Override
@@ -86,6 +95,7 @@ public class PhoneServiceImpl implements PhoneService {
         }
 
         phoneDataRepository.delete(phoneData);
+        cacheInvalidationService.evictPhoneCaches(currentUserId);
     }
 
     private UserEntity findCurrentUser(Long currentUserId) {

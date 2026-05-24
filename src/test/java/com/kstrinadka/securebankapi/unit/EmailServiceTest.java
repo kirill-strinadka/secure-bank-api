@@ -11,6 +11,7 @@ import com.kstrinadka.securebankapi.mapper.EmailMapper;
 import com.kstrinadka.securebankapi.repository.EmailDataRepository;
 import com.kstrinadka.securebankapi.repository.UserRepository;
 import com.kstrinadka.securebankapi.security.CurrentUserProvider;
+import com.kstrinadka.securebankapi.service.CacheInvalidationService;
 import com.kstrinadka.securebankapi.service.impl.EmailServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ class EmailServiceTest extends AbstractUnitTest {
     @Mock
     private EmailDataRepository emailDataRepository;
 
+    @Mock
+    private CacheInvalidationService cacheInvalidationService;
+
     private EmailServiceImpl emailService;
 
     @BeforeEach
@@ -46,7 +50,8 @@ class EmailServiceTest extends AbstractUnitTest {
                 currentUserProvider,
                 userRepository,
                 emailDataRepository,
-                new EmailMapper()
+                new EmailMapper(),
+                cacheInvalidationService
         );
         when(currentUserProvider.getCurrentUserId()).thenReturn(CURRENT_USER_ID);
     }
@@ -67,6 +72,7 @@ class EmailServiceTest extends AbstractUnitTest {
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getEmail()).isEqualTo("new@mail.com");
         verify(emailDataRepository).save(any(EmailDataEntity.class));
+        verify(cacheInvalidationService).evictEmailCaches(CURRENT_USER_ID);
     }
 
     @Test
@@ -92,6 +98,7 @@ class EmailServiceTest extends AbstractUnitTest {
 
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getEmail()).isEqualTo("new@mail.com");
+        verify(cacheInvalidationService).evictEmailCaches(CURRENT_USER_ID);
     }
 
     @Test
@@ -104,6 +111,7 @@ class EmailServiceTest extends AbstractUnitTest {
         EmailResponse response = emailService.updateEmail(10L, new EmailUpdateRequest("same@mail.com"));
 
         assertThat(response.getEmail()).isEqualTo("same@mail.com");
+        verify(cacheInvalidationService).evictEmailCaches(CURRENT_USER_ID);
     }
 
     @Test
@@ -140,6 +148,7 @@ class EmailServiceTest extends AbstractUnitTest {
         emailService.deleteEmail(10L);
 
         verify(emailDataRepository).delete(emailData);
+        verify(cacheInvalidationService).evictEmailCaches(CURRENT_USER_ID);
     }
 
     @Test

@@ -11,6 +11,7 @@ import com.kstrinadka.securebankapi.mapper.PhoneMapper;
 import com.kstrinadka.securebankapi.repository.PhoneDataRepository;
 import com.kstrinadka.securebankapi.repository.UserRepository;
 import com.kstrinadka.securebankapi.security.CurrentUserProvider;
+import com.kstrinadka.securebankapi.service.CacheInvalidationService;
 import com.kstrinadka.securebankapi.service.impl.PhoneServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ class PhoneServiceTest extends AbstractUnitTest {
     @Mock
     private PhoneDataRepository phoneDataRepository;
 
+    @Mock
+    private CacheInvalidationService cacheInvalidationService;
+
     private PhoneServiceImpl phoneService;
 
     @BeforeEach
@@ -46,7 +50,8 @@ class PhoneServiceTest extends AbstractUnitTest {
                 currentUserProvider,
                 userRepository,
                 phoneDataRepository,
-                new PhoneMapper()
+                new PhoneMapper(),
+                cacheInvalidationService
         );
         when(currentUserProvider.getCurrentUserId()).thenReturn(CURRENT_USER_ID);
     }
@@ -67,6 +72,7 @@ class PhoneServiceTest extends AbstractUnitTest {
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getPhone()).isEqualTo("79207865434");
         verify(phoneDataRepository).save(any(PhoneDataEntity.class));
+        verify(cacheInvalidationService).evictPhoneCaches(CURRENT_USER_ID);
     }
 
     @Test
@@ -92,6 +98,7 @@ class PhoneServiceTest extends AbstractUnitTest {
 
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getPhone()).isEqualTo("79207865434");
+        verify(cacheInvalidationService).evictPhoneCaches(CURRENT_USER_ID);
     }
 
     @Test
@@ -104,6 +111,7 @@ class PhoneServiceTest extends AbstractUnitTest {
         PhoneResponse response = phoneService.updatePhone(10L, new PhoneUpdateRequest("79207865431"));
 
         assertThat(response.getPhone()).isEqualTo("79207865431");
+        verify(cacheInvalidationService).evictPhoneCaches(CURRENT_USER_ID);
     }
 
     @Test
@@ -140,6 +148,7 @@ class PhoneServiceTest extends AbstractUnitTest {
         phoneService.deletePhone(10L);
 
         verify(phoneDataRepository).delete(phoneData);
+        verify(cacheInvalidationService).evictPhoneCaches(CURRENT_USER_ID);
     }
 
     @Test
