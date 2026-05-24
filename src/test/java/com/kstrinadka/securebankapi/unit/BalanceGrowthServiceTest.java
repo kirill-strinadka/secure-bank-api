@@ -6,6 +6,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import java.math.BigDecimal;
+
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -25,7 +28,11 @@ class BalanceGrowthServiceTest extends AbstractUnitTest {
     void increaseBalancesExecutesBulkUpdate() {
         balanceGrowthService.increaseBalances();
 
-        verify(accountRepository).increaseBalancesByTenPercentWithCap();
+        verify(accountRepository).increaseBalancesByTenPercentWithCap(
+                eq(new BigDecimal("2.07")),
+                eq(new BigDecimal("1.10")),
+                eq(2)
+        );
         verifyNoMoreInteractions(accountRepository);
     }
 }
