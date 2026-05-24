@@ -13,7 +13,6 @@ import com.kstrinadka.securebankapi.repository.UserRepository;
 import com.kstrinadka.securebankapi.security.CurrentUserProvider;
 import com.kstrinadka.securebankapi.service.EmailService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class EmailServiceImpl implements EmailService {
 
     private final CurrentUserProvider currentUserProvider;
