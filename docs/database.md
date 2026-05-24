@@ -51,11 +51,11 @@ erDiagram
         timestamp created_at
     }
 
-    USERS ||--|| ACCOUNT : владеет
-    USERS ||--o{ EMAIL_DATA : имеет
-    USERS ||--o{ PHONE_DATA : имеет
-    USERS ||--o{ TRANSFER : отправляет
-    USERS ||--o{ TRANSFER : получает
+    USERS ||--|| ACCOUNT : owns
+    USERS ||--o{ EMAIL_DATA : has
+    USERS ||--o{ PHONE_DATA : has
+    USERS ||--o{ TRANSFER : sends
+    USERS ||--o{ TRANSFER : receives
 ```
 
 ## Таблицы
