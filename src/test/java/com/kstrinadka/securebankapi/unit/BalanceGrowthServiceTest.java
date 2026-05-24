@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.eq;
@@ -41,7 +42,9 @@ class BalanceGrowthServiceTest extends AbstractUnitTest {
         )).thenReturn(50, 12, 0);
         when(batchProcessor.hasDueAccounts(any(LocalDateTime.class))).thenReturn(false);
 
-        balanceGrowthService.increaseBalances();
+        int processedCount = balanceGrowthService.increaseBalances();
+
+        assertThat(processedCount).isEqualTo(62);
 
         verify(batchProcessor, times(3)).increaseNextBatch(
                 eq(new BigDecimal("2.07")),

@@ -13,6 +13,7 @@ import com.kstrinadka.securebankapi.repository.TransferRepository;
 import com.kstrinadka.securebankapi.repository.UserRepository;
 import com.kstrinadka.securebankapi.service.TransferService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransferServiceImpl implements TransferService {
 
     private final UserRepository userRepository;
@@ -31,29 +33,37 @@ public class TransferServiceImpl implements TransferService {
     @Override
     @Transactional
     public TransferResponse transfer(Long fromUserId, Long toUserId, BigDecimal amount) {
-        validateRequest(fromUserId, toUserId, amount);
+        log.info("Transfer started: fromUserId={}, toUserId={}, amount={}", fromUserId, toUserId, amount);
+        try {
+            validateRequest(fromUserId, toUserId, amount);
 
-        ensureUserExists(fromUserId, "SENDER_NOT_FOUND");
-        ensureUserExists(toUserId, "RECEIVER_NOT_FOUND");
+            ensureUserExists(fromUserId, "SENDER_NOT_FOUND");
+            ensureUserExists(toUserId, "RECEIVER_NOT_FOUND");
 
-        LockedAccounts lockedAccounts = lockAccounts(fromUserId, toUserId);
-        AccountEntity fromAccount = lockedAccounts.accountForUser(fromUserId);
-        AccountEntity toAccount = lockedAccounts.accountForUser(toUserId);
+            LockedAccounts lockedAccounts = lockAccounts(fromUserId, toUserId);
+            AccountEntity fromAccount = lockedAccounts.accountForUser(fromUserId);
+            AccountEntity toAccount = lockedAccounts.accountForUser(toUserId);
 
-        if (fromAccount.getBalance().compareTo(amount) < 0) {
-            throw new InsufficientFundsException("INSUFFICIENT_FUNDS", "Insufficient funds");
+            if (fromAccount.getBalance().compareTo(amount) < 0) {
+                throw new InsufficientFundsException("INSUFFICIENT_FUNDS", "Insufficient funds");
+            }
+
+            fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
+            toAccount.setBalance(toAccount.getBalance().add(amount));
+
+            TransferEntity transfer = new TransferEntity();
+            transfer.setFromUser(fromAccount.getUser());
+            transfer.setToUser(toAccount.getUser());
+            transfer.setAmount(amount);
+            transfer.setStatus(TransferStatus.SUCCESS);
+
+            TransferEntity savedTransfer = transferRepository.save(transfer);
+            log.info("Transfer success: transferId={}", savedTransfer.getId());
+            return transferMapper.toResponse(savedTransfer);
+        } catch (RuntimeException exception) {
+            log.warn("Transfer failed: reason={}", exception.getClass().getSimpleName());
+            throw exception;
         }
-
-        fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
-        toAccount.setBalance(toAccount.getBalance().add(amount));
-
-        TransferEntity transfer = new TransferEntity();
-        transfer.setFromUser(fromAccount.getUser());
-        transfer.setToUser(toAccount.getUser());
-        transfer.setAmount(amount);
-        transfer.setStatus(TransferStatus.SUCCESS);
-
-        return transferMapper.toResponse(transferRepository.save(transfer));
     }
 
     private void validateRequest(Long fromUserId, Long toUserId, BigDecimal amount) {

@@ -39,7 +39,7 @@ public class BalanceGrowthServiceImpl implements BalanceGrowthService {
      * а оставшиеся аккаунты будут догнаны следующим запуском scheduler.
      */
     @Override
-    public void increaseBalances() {
+    public int increaseBalances() {
         LocalDateTime runStartedAt = LocalDateTime.now();
         // Если last_balance_growth_at <= growthThreshold, значит аккаунт должен получить рост баланса на 10%
         LocalDateTime growthThreshold = runStartedAt.minus(GROWTH_INTERVAL);
@@ -56,8 +56,8 @@ public class BalanceGrowthServiceImpl implements BalanceGrowthService {
             }
 
             if (!batchProcessor.hasDueAccounts(growthThreshold)) {
-                log.info("Balance growth finished. Updated account-periods: {}", totalUpdated);
-                return;
+                log.debug("Balance growth service finished. Updated account-periods: {}", totalUpdated);
+                return totalUpdated;
             }
 
             noProgressAttempts++;
@@ -67,7 +67,7 @@ public class BalanceGrowthServiceImpl implements BalanceGrowthService {
                                 "Some due accounts are probably locked and will be retried on the next scheduler run.",
                         noProgressAttempts
                 );
-                return;
+                return totalUpdated;
             }
 
             waitBeforeRetry();

@@ -31,9 +31,11 @@ public class BalanceGrowthScheduler {
         }
 
         try {
-            balanceGrowthService.increaseBalances();
+            log.info("Balance growth started");
+            int processedCount = balanceGrowthService.increaseBalances();
+            log.info("Balance growth finished, processed accounts count = {}", processedCount);
         } catch (RuntimeException exception) {
-            log.error("Balance growth scheduler run failed", exception);
+            log.error("Balance growth failed", exception);
         } finally {
             running.set(false);
         }
