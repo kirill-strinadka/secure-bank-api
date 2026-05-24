@@ -15,6 +15,6 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
     @Query(value = "SELECT * FROM account WHERE user_id = :userId FOR UPDATE", nativeQuery = true)
     Optional<AccountEntity> findByUserIdForUpdate(@Param("userId") Long userId);
 
-    @Query(value = "SELECT * FROM account FOR UPDATE", nativeQuery = true)
+    @Query(value = "SELECT * FROM account ORDER BY user_id FOR UPDATE", nativeQuery = true)
     List<AccountEntity> findAllForUpdate();
 }
